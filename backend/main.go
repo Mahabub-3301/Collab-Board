@@ -16,8 +16,8 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 
 	store := NewTaskStore()
-
-	TaskHandler := NewTaskHandler(store)
+	service := NewTaskService(store)
+	TaskHandler := NewTaskHandler(service)
 
 
 	http.HandleFunc("/health", healthHandler)
@@ -29,7 +29,7 @@ func main() {
 			TaskHandler.GetTasks(w,r)
 
 		case http.MethodPost :
-			TaskHandler.createTask(w,r)
+			TaskHandler.CreateTask(w,r)
 
 		default:
 			w.Header().Set("Allow","GET, POST")
@@ -43,7 +43,7 @@ func main() {
 			TaskHandler.GetTask(w,r)
 
 		case http.MethodPut :
-			TaskHandler.UpdateTasks(w,r)
+			TaskHandler.UpdateTask(w,r)
 
 		case http.MethodDelete:
 			TaskHandler.DeleteTask(w,r)

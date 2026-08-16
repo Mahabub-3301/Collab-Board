@@ -9,16 +9,16 @@ import (
 
 
 type TaskHandler struct {
-	store *TaskStore
+	service *TaskService
 }
 
-func NewTaskHandler(store *TaskStore) *TaskHandler {
+func NewTaskHandler(service *TaskService) *TaskHandler {
 	return &TaskHandler {
-		store : store,
+		service : service,
 	}
 }
 
-func (h *TaskHandler) CreateTask(w http.ResponseWriter, r *htt.Request) {
+func (h *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 	var t Task 
 	
 	err:= json.NewDecoder(r.Body).Decode(&t)
@@ -33,13 +33,13 @@ func (h *TaskHandler) CreateTask(w http.ResponseWriter, r *htt.Request) {
 		return  
 	}
 
-	h.store.Create(&t)
+	h.service.CreateTask(&t)
 
 	writeJSON(w,http.StatusOK,t)
 }
 
 func (h *TaskHandler) GetTasks(w http.ResponseWriter, r *http.Request) {
-	data := h.store.GetALL()
+	data := h.service.GetTasks()
 
 	writeJSON(w,http.StatusOK,data)
 }
@@ -51,9 +51,9 @@ func (h *TaskHandler) GetTask(w http.ResponseWriter, r *http.Request) {
 		writeError(w,http.StatusBadRequest,"Invalid ID")
 		return
 	}
-	task, ok := h.store.Get(idr)
-	if !ok {
-		writeError(w,http.StatusBadRequest,"Task not found")
+	task, err := h.service.GetTask(idr)
+	if err != nil {
+		writeError(w,http.StatusBadRequest,err.Error())
 		return 
 	}
 	writeJSON(w,http.StatusOK,task)
@@ -68,7 +68,7 @@ func (h *TaskHandler) UpdateTask(w http.ResponseWriter, r *http.Request) {
 	}
 	var t Task
 	er := json.NewDecoder(r.Body).Decode(&t)
-	if !er {
+	if er!=nil {
 		writeError(w,http.StatusBadRequest,"Invalid JSON")
 		return
 	}
@@ -78,9 +78,9 @@ func (h *TaskHandler) UpdateTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 
-	task, ok := h.store.Update(id,&t)
-	if !ok {
-		writeError(w,http.StatusBadRequest,"Task not Found")
+	task, err := h.service.UpdateTask(id,&t)
+	if err != nil {
+		writeError(w,http.StatusBadRequest,err.Error())
 		return
 	}
 	writeJSON(w,http.StatusOK,task)
@@ -90,14 +90,14 @@ func (h *TaskHandler) DeleteTask(w http.ResponseWriter, r *http.Request){
 	ids := strings.TrimPrefix(r.URL.Path,"/task/")
 	id, err := strconv.Atoi(ids)
 
-	if !err {
+	if err!=err {
 		writeError(w,http.StatusBadRequest,"Invalid ID")
 		return 
 	}
 
-	ok := h.store.Delete(id)
-	if !ok {
-		writeError(w,http.StatusNotFound,"Task Not Found")
+	ok := h.service.DeleteTask(id)
+	if ok != nil {
+		writeError(w,http.StatusNotFound,ok.Error())
 		return 
 	}
 

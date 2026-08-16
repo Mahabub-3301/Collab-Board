@@ -24,4 +24,4 @@ func validate(t Task) error {
 	default:
 		return errors.New("invalid status: must be todo, in-progress or done")
 	}
-}n
+}

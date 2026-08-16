@@ -25,4 +25,4 @@ func writeError(w http.ResponseWriter, status int, message string) error {
 	return writeJSON(w, status, APIError{
 		Error: message,
 	})
-}n
+}
